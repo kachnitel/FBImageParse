@@ -8,61 +8,50 @@
 <script type="text/javascript">//<![CDATA[
 
 	/**
-	 * Converts facebook post ID to a direct image link of defSize or smaller.
-	 *
-	 *
+	 * Converts facebook post ID to a direct image link.
+	 * 
+	 * accepts parameters id and size, i.e. ./fbimgparser.html?id=10151484866914236&size=600
+	 * default image size is 320px (determined by width)
 	 *
 	 */
 
 	$(window).load(function(){
 		var url = $.url(window.location.href);
-		var FBGraphUrl = "https://graph.facebook.com/";
-		var defSize = 320;
+		var FBGraphUrl = "https://graph.facebook.com/";			// Facebook API URL
+		var size = url.param('size') ? url.param('size') : 320; // Default image size
 		var resultUrl;
 
-		var param = url.param('id');
-		if (param != "") {
-			if (param.indexOf(',') > 0) {
-				var arr = param.split(',');
-				var id = arr[0];
-				var size = arr[1];
-			} else {
-				var id = param;
-				var size = defSize;
-			}
-				
+		$(document).ajaxError(function() {
+			document.write("No image found!");					// Error message if JSON fails loading
+		});
+		
+		if (url.param('id') != undefined) {
+			var id = url.param('id');
 			FBGraphUrl += id;
 			$.getJSON(FBGraphUrl, function(data) {
-				if(data.images) {
+				if(data.images) {								// If images field is found, use the list provided
 					var images = new Array;
 					$.each(data.images, function(key, value){
-						if(value.width == size) {
-							console.log("..loading image size: " + size);
+						if(value.width == size) {				// If a size is matched, use it and stop the loop
 							resultUrl = value.source;
 							return false;
-						} else if (value.width < size) {
+						} else if (value.width < size) {		// Otherwise we are only interested in smaller images than requested
 							images.push(value);
 						}
 					});
 						
-					if(resultUrl == undefined) {
+					if(resultUrl == undefined) {				// If the size didnt match, find the nearest smaller image
 						var curSize = 0;
-						console.log("..image size " + size + " not found, loading nearest downsized image..");
 						$.each(images, function(key, value) {
-							console.log("Found size: " + value.width);
-							if(value.width > curSize) {
-								console.log("Using last found size");
+							if(value.width > curSize) {			// Look for the largest image in the images array (we already filtered too big imgs)
 								resultUrl = value.source;
 								curSize = value.width;
-							} else {
-								console.log("Already found a better match, discarding. ");
 							}
 						});
 					}
 				} 
 					
-				if (data.picture && resultUrl == undefined) {
-					console.log("no image found, trying the picture attribute");
+				if (data.picture && resultUrl == undefined) {	// If the images field didnt provide sufficient image, try the picture attribute
 					resultUrl = data.picture;
 				}
 	
@@ -72,6 +61,8 @@
 					document.write("No Image found.");
 				}
 			});
+		} else {
+			document.write("Please provide a post ID!");
 		}
 	});
 //]]>
