@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+  <script type="text/javascript" src="https://raw.github.com/allmarkedup/jQuery-URL-Parser/master/purl.js"></script>
+  <title>Facebook get image url from ID</title>
+<script type="text/javascript">//<![CDATA[
+
+	/**
+	 * Converts facebook post ID to a direct image link of defSize or smaller.
+	 *
+	 *
+	 *
+	 */
+
+	$(window).load(function(){
+		var url = $.url(window.location.href);
+		var FBGraphUrl = "https://graph.facebook.com/";
+		var defSize = 320;
+		var resultUrl;
+
+		var param = url.param('id');
+		if (param != "") {
+			if (param.indexOf(',') > 0) {
+				var arr = param.split(',');
+				var id = arr[0];
+				var size = arr[1];
+			} else {
+				var id = param;
+				var size = defSize;
+			}
+				
+			FBGraphUrl += id;
+			$.getJSON(FBGraphUrl, function(data) {
+				if(data.images) {
+					var images = new Array;
+					$.each(data.images, function(key, value){
+						if(value.width == size) {
+							console.log("..loading image size: " + size);
+							resultUrl = value.source;
+							return false;
+						} else if (value.width < size) {
+							images.push(value);
+						}
+					});
+						
+					if(resultUrl == undefined) {
+						var curSize = 0;
+						console.log("..image size " + size + " not found, loading nearest downsized image..");
+						$.each(images, function(key, value) {
+							console.log("Found size: " + value.width);
+							if(value.width > curSize) {
+								console.log("Using last found size");
+								resultUrl = value.source;
+								curSize = value.width;
+							} else {
+								console.log("Already found a better match, discarding. ");
+							}
+						});
+					}
+				} 
+					
+				if (data.picture && resultUrl == undefined) {
+					console.log("no image found, trying the picture attribute");
+					resultUrl = data.picture;
+				}
+	
+				if (resultUrl) {
+					document.location.href = resultUrl;
+				} else {
+					document.write("No Image found.");
+				}
+			});
+		}
+	});
+//]]>
+</script>
+
+</head>
+<body>
+... loading ...
+</body>
+
+
+</html>
+
