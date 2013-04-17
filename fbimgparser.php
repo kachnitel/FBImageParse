@@ -32,10 +32,10 @@ if(isset($_GET['id'])) {
 	}
 	
 	if(!isset($resultUrl)) {
-		$errMsg = "No image found";
+		$resultUrl = "https://keboola-bi.s3.amazonaws.com/liveworld/LW_No_image.jpg";
 	}
 } else {
-	$errMsg = "Please provide a post id ID";
+	$resultUrl = "https://keboola-bi.s3.amazonaws.com/liveworld/LW_No_image.jpg";
 }
 
 if(!isset($errMsg) && isset($resultUrl)) {
